@@ -14,6 +14,10 @@ app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({ status: 'ok', service: 'PrecisionFit API' });
 });
 
+app.get('/', (req: Request, res: Response) => {
+  res.status(200).json({ message: 'Welcome to PrecisionFit API' });
+});
+
 app.listen(port, () => {
-  console.log(`PrecisionFit API (Guardrails & Services) running on port ${port}`);
+  console.log(`PrecisionFit API running on port ${port}`);
 });
