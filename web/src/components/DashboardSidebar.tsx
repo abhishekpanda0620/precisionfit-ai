@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useState } from "react";
-import { Activity, Utensils, Scale, LayoutDashboard, LogOut, Menu, X } from "lucide-react";
+import { Activity, Utensils, Scale, LayoutDashboard, LogOut, Menu, X, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const NAV_ITEMS = [
@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { href: "/dashboard/activity", label: "Activity", icon: Activity },
   { href: "/dashboard/meals", label: "Meals", icon: Utensils },
   { href: "/dashboard/weight", label: "Weight", icon: Scale },
+  { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
 function NavContent({ onNavigate }: { onNavigate?: () => void }) {

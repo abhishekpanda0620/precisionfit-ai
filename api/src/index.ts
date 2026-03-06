@@ -5,6 +5,7 @@ import authRoutes from './routes/auth';
 import cardioRoutes from './routes/cardio';
 import mealRoutes from './routes/meal';
 import weightRoutes from './routes/weight';
+import profileRoutes from './routes/profile';
 
 dotenv.config();
 
@@ -23,6 +24,7 @@ app.use('/api/internal/auth', authRoutes);
 app.use('/api/cardio', cardioRoutes);
 app.use('/api/meals', mealRoutes);
 app.use('/api/weight', weightRoutes);
+app.use('/api/profile', profileRoutes);
 
 app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({ status: 'ok', service: 'PrecisionFit API' });

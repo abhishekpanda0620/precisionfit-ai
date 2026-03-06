@@ -21,7 +21,16 @@ router.post('/', asyncHandler(async (req, res) => {
   ]);
   if (invalid) return res.status(400).json({ error: invalid });
 
-  const caloriesFormula = keytelCalorieBurn(avgHeartRate, durationMinutes);
+  // Fetch user biometrics for accurate Keytel formula calculation
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+
+  const caloriesFormula = keytelCalorieBurn(
+    avgHeartRate,
+    durationMinutes,
+    (user as any)?.weightKg ?? undefined,
+    (user as any)?.age ?? undefined,
+    ((user as any)?.gender as 'male' | 'female') ?? undefined,
+  );
 
   const session = await prisma.cardioSession.create({
     data: { userId, durationMinutes, distanceKm, caloriesDevice, caloriesFormula, avgHeartRate, source },

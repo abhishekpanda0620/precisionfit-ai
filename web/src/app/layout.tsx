@@ -18,6 +18,8 @@ export const metadata: Metadata = {
   description: "Data-driven fitness & nutrition estimation.",
 };
 
+import { Toaster } from "sonner";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -28,7 +30,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <Toaster position="bottom-right" richColors theme="dark" />
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );
