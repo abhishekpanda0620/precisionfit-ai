@@ -34,6 +34,7 @@ router.post('/register', async (req: Request, res: Response) => {
     const { passwordHash: _, ...safeUser } = user;
     res.json(safeUser);
   } catch (error) {
+    console.error('[REGISTER ERROR]', error);
     res.status(500).json({ error: 'Failed to register' });
   }
 });
