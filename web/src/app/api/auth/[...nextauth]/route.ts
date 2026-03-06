@@ -16,7 +16,6 @@ export const authOptions: NextAuthOptions = {
         if (!credentials?.email || !credentials?.password) return null;
 
         try {
-          // Verify credentials against our strictly isolated internal Express API
           const res = await fetch(`${API_URL}/api/internal/auth/login`, {
             method: 'POST',
             body: JSON.stringify(credentials),
@@ -27,32 +26,27 @@ export const authOptions: NextAuthOptions = {
           });
 
           const user = await res.json();
-          if (res.ok && user) {
-            return user;
-          }
+          if (res.ok && user) return user;
           return null;
-        } catch (error) {
+        } catch {
           return null;
         }
       }
     })
   ],
   session: {
-    strategy: "jwt", // Credentials providers require JWT strategy
+    strategy: "jwt",
   },
   callbacks: {
     async session({ session, token }) {
       if (session.user && token.sub) {
-        // @ts-ignore
         session.user.id = token.sub;
-        // @ts-ignore
-        session.user.role = token.role;
+        session.user.role = token.role || "user";
       }
       return session;
     },
     async jwt({ token, user }) {
       if (user) {
-        // @ts-ignore
         token.role = user.role;
       }
       return token;
