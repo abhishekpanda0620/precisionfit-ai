@@ -2,6 +2,9 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth';
+import cardioRoutes from './routes/cardio';
+import mealRoutes from './routes/meal';
+import weightRoutes from './routes/weight';
 
 dotenv.config();
 
@@ -15,6 +18,11 @@ app.use(express.json());
 
 // Internal Auth Routes (Secured by INTERNAL_API_SECRET)
 app.use('/api/internal/auth', authRoutes);
+
+// Public Logging Routes (will add session auth middleware later)
+app.use('/api/cardio', cardioRoutes);
+app.use('/api/meals', mealRoutes);
+app.use('/api/weight', weightRoutes);
 
 app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({ status: 'ok', service: 'PrecisionFit API' });
