@@ -1,14 +1,20 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import authRoutes from './routes/auth';
 
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3001;
 
+const url = process.env.BASE_URL || "http://localhost:3001";
+
 app.use(cors());
 app.use(express.json());
+
+// Internal Auth Routes (Secured by INTERNAL_API_SECRET)
+app.use('/api/internal/auth', authRoutes);
 
 app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({ status: 'ok', service: 'PrecisionFit API' });
@@ -19,5 +25,5 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 app.listen(port, () => {
-  console.log(`PrecisionFit API running on port ${port}`);
+  console.log(`PrecisionFit API running on  ${url}`);
 });
