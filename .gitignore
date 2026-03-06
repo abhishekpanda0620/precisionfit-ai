@@ -1,3 +1,10 @@
 node_modules/
-.turbo
+.turbo/
 *.log
+api/.turbo
+web/.turbo
+# Build artifacts
+api/dist/
+.turbo/
+api/.turbo/
+web/.turbo/
