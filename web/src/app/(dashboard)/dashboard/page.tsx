@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import { Activity, Utensils, Scale, TrendingUp } from "lucide-react";
 import { useApiResource } from "@/hooks/useApiResource";
 import { PageHeader, StatCard, DashboardSection, EmptyState } from "@/components/dashboard/shared";
+import { DiscrepancyReport } from "@/components/dashboard/DiscrepancyReport";
 
 type CardioSession = {
   id: string;
@@ -23,6 +24,7 @@ type WeightEntry = {
   date: string;
   weightKg: number;
 };
+
 
 export default function DashboardOverview() {
   const { data: session } = useSession();
@@ -126,6 +128,9 @@ export default function DashboardOverview() {
             </div>
           </div>
         </DashboardSection>
+        
+        {/* Phase 3: Agent 4 Discrepancy Report */}
+        <DiscrepancyReport sessions={cardioSessions} />
       </div>
     </div>
   );
