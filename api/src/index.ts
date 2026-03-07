@@ -34,6 +34,14 @@ app.get('/', (req: Request, res: Response) => {
   res.status(200).json({ message: 'Welcome to PrecisionFit API' });
 });
 
-app.listen(port, () => {
-  console.log(`PrecisionFit API running on  ${url}`);
-});
+const startServer = () => {
+  if (process.env.NODE_ENV !== 'production') {
+    app.listen(port, () => {
+      console.log(`PrecisionFit API running on ${url}`);
+    });
+  }
+};
+
+startServer();
+
+export default app;
