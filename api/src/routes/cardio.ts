@@ -8,7 +8,7 @@ const router = Router();
 
 // POST /api/cardio — Log a new cardio session
 router.post('/', asyncHandler(async (req, res) => {
-  const { userId, durationMinutes, distanceKm, caloriesDevice, avgHeartRate, source = 'manual' } = req.body;
+  const { userId, durationMinutes, distanceKm, caloriesDevice, avgHeartRate, source = 'manual', confidenceScore } = req.body;
 
   const missing = validateRequired(req.body, ['userId', 'durationMinutes', 'distanceKm', 'caloriesDevice', 'avgHeartRate']);
   if (missing) return res.status(400).json({ error: missing });
@@ -33,7 +33,7 @@ router.post('/', asyncHandler(async (req, res) => {
   );
 
   const session = await prisma.cardioSession.create({
-    data: { userId, durationMinutes, distanceKm, caloriesDevice, caloriesFormula, avgHeartRate, source },
+    data: { userId, durationMinutes, distanceKm, caloriesDevice, caloriesFormula, avgHeartRate, source, confidenceScore },
   });
 
   res.status(201).json(session);

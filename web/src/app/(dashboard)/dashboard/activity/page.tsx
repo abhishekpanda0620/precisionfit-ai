@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { useSession } from "next-auth/react";
-import { Plus, Activity, Trash2 } from "lucide-react";
+import { Plus, Activity, Trash2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useApiResource } from "@/hooks/useApiResource";
 import { PageHeader, StatCard, DashboardSection, EmptyState } from "@/components/dashboard/shared";
 import { FormField, DarkInput } from "@/components/dashboard/FormField";
+import { VisionUpload } from "@/components/dashboard/VisionUpload";
 
 type CardioSession = {
   id: string;
@@ -16,6 +17,7 @@ type CardioSession = {
   caloriesDevice: number;
   caloriesFormula: number | null;
   avgHeartRate: number;
+  confidenceScore?: number;
 };
 
 const INITIAL_FORM = { durationMinutes: "", distanceKm: "", caloriesDevice: "", avgHeartRate: "" };
@@ -24,28 +26,60 @@ export default function ActivityPage() {
   const { data: session } = useSession();
   const userId = session?.user?.id || "";
   const [form, setForm] = useState(INITIAL_FORM);
+  const [confidenceScore, setConfidenceScore] = useState<number | null>(null);
 
   const { data: sessions, submitting, create, remove } = useApiResource<CardioSession>({
     endpoint: "/api/cardio",
     queryParams: { userId },
   });
 
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = await create({
+    setErrorMsg(null);
+    const result = await create({
       userId,
       durationMinutes: Number(form.durationMinutes),
       distanceKm: Number(form.distanceKm),
       caloriesDevice: Number(form.caloriesDevice),
       avgHeartRate: Number(form.avgHeartRate),
+      source: confidenceScore !== null ? "vision_extraction" : "manual",
+      confidenceScore: confidenceScore !== null ? confidenceScore : undefined,
     });
-    if (success) setForm(INITIAL_FORM);
+    if (result.success) {
+      setForm(INITIAL_FORM);
+      setConfidenceScore(null);
+    } else {
+      setErrorMsg(result.error);
+    }
   };
 
   const update = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
+  const handleVisionExtraction = (data: any) => {
+    // Sanitize hallucinatory or out-of-bounds values from the OCR
+    const safeNum = (val: any, min: number, max: number) => {
+      const num = Number(val);
+      if (!val || isNaN(num) || num < min || num > max) return "";
+      return num.toString();
+    };
+
+    setForm({
+      durationMinutes: safeNum(data.durationMinutes, 1, 1440),
+      distanceKm: safeNum(data.distanceKm, 0.1, 500),
+      caloriesDevice: safeNum(data.caloriesDevice, 10, 10000),
+      avgHeartRate: safeNum(data.avgHeartRate, 30, 220),
+    });
+    setConfidenceScore(data.confidenceScore ?? 1.0);
+  };
+
   const totalBurned = sessions.reduce((sum, s) => sum + (s.caloriesFormula ?? s.caloriesDevice), 0);
+  
+  // Vision Confidence Agent UI Rule
+  const needsVerification = confidenceScore !== null && confidenceScore < 0.85;
+  const inputClassOverride = needsVerification ? "border-amber-500/50 focus-visible:ring-amber-500/50 ring-amber-500/20" : undefined;
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -57,23 +91,45 @@ export default function ActivityPage() {
       </div>
 
       <DashboardSection title="Log Cardio Session" icon={Plus}>
+        <VisionUpload onExtract={handleVisionExtraction} />
+        
+        {needsVerification && (
+          <div className="col-span-2 lg:col-span-4 mb-4 p-3 rounded-md bg-amber-500/10 border border-amber-500/20 flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-amber-200">
+              <strong>Low Confidence ({Math.round(confidenceScore * 100)}%):</strong> 
+              {" "}The image was unclear or some fields couldn't be detected. Please manually verify and correct the highlighted fields below.
+            </p>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <FormField label="Duration (min)">
-            <DarkInput type="number" placeholder="30" value={form.durationMinutes} onChange={update("durationMinutes")} required />
+            <DarkInput className={inputClassOverride} type="number" placeholder="30" value={form.durationMinutes} onChange={update("durationMinutes")} required />
           </FormField>
           <FormField label="Distance (km)">
-            <DarkInput type="number" step="0.1" placeholder="5.0" value={form.distanceKm} onChange={update("distanceKm")} required />
+            <DarkInput className={inputClassOverride} type="number" step="0.1" placeholder="5.0" value={form.distanceKm} onChange={update("distanceKm")} required />
           </FormField>
           <FormField label="Device Calories">
-            <DarkInput type="number" placeholder="350" value={form.caloriesDevice} onChange={update("caloriesDevice")} required />
+            <DarkInput className={inputClassOverride} type="number" placeholder="350" value={form.caloriesDevice} onChange={update("caloriesDevice")} required />
           </FormField>
           <FormField label="Avg Heart Rate">
-            <DarkInput type="number" placeholder="145" value={form.avgHeartRate} onChange={update("avgHeartRate")} required />
+            <DarkInput className={inputClassOverride} type="number" placeholder="145" value={form.avgHeartRate} onChange={update("avgHeartRate")} required />
           </FormField>
-          <div className="col-span-2 lg:col-span-4">
-            <Button type="submit" disabled={submitting} className="bg-white text-zinc-950 hover:bg-zinc-200 font-semibold w-full sm:w-auto">
-              {submitting ? "Logging..." : "Log Session"}
-            </Button>
+          <div className="col-span-2 lg:col-span-4 flex flex-col gap-2 mt-2">
+            {errorMsg && (
+              <div className="text-sm font-medium text-red-500 bg-red-500/10 p-2 rounded-md border border-red-500/20">
+                Validation Error: {errorMsg}
+              </div>
+            )}
+            <div className="flex items-center justify-between">
+              <Button type="submit" disabled={submitting} className="bg-white text-zinc-950 hover:bg-zinc-200 font-semibold w-full sm:w-auto">
+                {submitting ? "Logging..." : "Log Session"}
+              </Button>
+              {confidenceScore !== null && (
+                <span className="text-xs text-zinc-500 font-medium">Source: AI Extraction</span>
+              )}
+            </div>
           </div>
         </form>
       </DashboardSection>

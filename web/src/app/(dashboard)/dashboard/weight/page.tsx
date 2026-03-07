@@ -25,10 +25,17 @@ export default function WeightPage() {
     queryParams: { userId },
   });
 
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = await create({ userId, weightKg: Number(weightKg) });
-    if (success) setWeightKg("");
+    setErrorMsg(null);
+    const result = await create({ userId, weightKg: Number(weightKg) });
+    if (result.success) {
+      setWeightKg("");
+    } else {
+      setErrorMsg(result.error);
+    }
   };
 
   const latest = entries[0];
@@ -61,6 +68,11 @@ export default function WeightPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
+            {errorMsg && (
+              <div className="text-sm font-medium text-red-500 bg-red-500/10 p-2 rounded-md border border-red-500/20 mb-3">
+                Validation Error: {errorMsg}
+              </div>
+            )}
             <form onSubmit={handleSubmit} className="flex gap-3">
               <FormField label="Weight (kg)" className="flex-1">
                 <DarkInput type="number" step="0.1" placeholder="78.5" value={weightKg} onChange={(e) => setWeightKg(e.target.value)} required />

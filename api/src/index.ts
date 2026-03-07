@@ -6,6 +6,7 @@ import cardioRoutes from './routes/cardio';
 import mealRoutes from './routes/meal';
 import weightRoutes from './routes/weight';
 import profileRoutes from './routes/profile';
+import visionRoutes from './routes/vision';
 
 dotenv.config();
 
@@ -15,7 +16,8 @@ const port = process.env.PORT || 3001;
 const url = process.env.BASE_URL || "http://localhost:3001";
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Internal Auth Routes (Secured by INTERNAL_API_SECRET)
 app.use('/api/internal/auth', authRoutes);
@@ -25,6 +27,7 @@ app.use('/api/cardio', cardioRoutes);
 app.use('/api/meals', mealRoutes);
 app.use('/api/weight', weightRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api/vision', visionRoutes);
 
 app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({ status: 'ok', service: 'PrecisionFit API' });

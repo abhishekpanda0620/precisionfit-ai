@@ -35,9 +35,12 @@ export default function MealsPage() {
     queryParams: { userId, date: today },
   });
 
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = await create({
+    setErrorMsg(null);
+    const result = await create({
       userId,
       foodName: form.foodName,
       amountGrams: Number(form.amountGrams),
@@ -46,7 +49,11 @@ export default function MealsPage() {
       carbsGrams: Number(form.carbsGrams) || 0,
       fatGrams: Number(form.fatGrams) || 0,
     });
-    if (success) setForm(INITIAL_FORM);
+    if (result.success) {
+      setForm(INITIAL_FORM);
+    } else {
+      setErrorMsg(result.error);
+    }
   };
 
   const update = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -93,8 +100,13 @@ export default function MealsPage() {
           <FormField label="Fat (g)">
             <DarkInput type="number" step="0.1" placeholder="7.2" value={form.fatGrams} onChange={update("fatGrams")} />
           </FormField>
-          <div className="col-span-2 lg:col-span-3">
-            <Button type="submit" disabled={submitting} className="bg-white text-zinc-950 hover:bg-zinc-200 font-semibold w-full sm:w-auto">
+          <div className="col-span-2 lg:col-span-3 flex flex-col gap-2">
+            {errorMsg && (
+              <div className="text-sm font-medium text-red-500 bg-red-500/10 p-2 rounded-md border border-red-500/20">
+                Validation Error: {errorMsg}
+              </div>
+            )}
+            <Button type="submit" disabled={submitting} className="bg-white text-zinc-950 hover:bg-zinc-200 font-semibold w-full sm:w-auto self-start">
               {submitting ? "Logging..." : "Log Meal"}
             </Button>
           </div>
