@@ -103,7 +103,7 @@ export default function DashboardSidebar() {
       )}
 
       {/* Desktop Sidebar */}
-      <aside className="w-64 shrink-0 bg-zinc-900/50 border-r border-zinc-800/50 hidden sm:flex flex-col p-6 backdrop-blur-sm">
+      <aside className="w-64 shrink-0 bg-zinc-900/50 border-r border-zinc-800/50 hidden sm:flex flex-col p-6 backdrop-blur-sm sticky top-0 h-screen overflow-y-auto">
         <NavContent />
       </aside>
     </>
